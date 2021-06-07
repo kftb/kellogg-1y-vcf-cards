@@ -1,0 +1,91 @@
+---
+title: "Kellogg vCard creation"
+author: "Kevin Bay"
+date: "5/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(dplyr)
+library(dialr)
+library(xlsx)
+```
+
+Read in the data
+```{r}
+df <- read_csv("input/1y_survey.csv")
+```
+
+
+```{r }
+# Set option for dialr format
+getOption("dialr.format")
+options(dialr.format = "INTERNATIONAL")
+
+df_new <- df %>%
+  
+  # Filter out who doesnt want to be included
+  filter(confid1 == "Yes") %>% 
+  
+  # Format email addresses
+  mutate(kellogg_email = tolower(kellogg_email), 
+         perm_email = tolower(perm_email),
+         perm_email_corr = tolower(perm_email_corr),
+         slack_email = tolower(slack_email),
+         netID = tolower(netID)) %>% 
+  
+  # Phone number formatting, remove all unnecessary items
+  mutate(fixed_phone_clean = gsub("[^0-9]", "", fixed_phone),
+         fixed_wa_phone_clean = gsub("[^0-9]", "", fixed_wa_phone)) %>% 
+  
+  # Phone number creation, merge country code with phone number
+  mutate(fixed_phone_clean_comb = paste0("+",fixed_country_code," ",fixed_phone_clean),
+  fixed_wa_phone_clean_comb = paste0("+",fixed_wa_country_code," ",fixed_wa_phone_clean)) %>% 
+  
+  
+  # Reformat numbers
+  mutate_at("fixed_phone_clean_comb", ~phone(., fixed_country)) %>%
+  mutate_at("fixed_phone_clean_comb",
+            list(valid_phone = is_valid,
+                 region = get_region,
+                 type = get_type,
+                 phone_final = format)) %>% 
+
+  mutate_at("fixed_wa_phone_clean_comb", ~phone(., wa_country)) %>%
+  mutate_at("fixed_wa_phone_clean_comb",
+            list(valid_wa = is_valid,
+                 region = get_region,
+                 type = get_type,
+                 wa_final = format)) %>% 
+  
+  # Filter out columns we dont need
+  select(-jv, -confid1, -confid2, -perm_email, -X12, -phone, -fixed_phone, 
+         -X17, -whatsapp, -fixed_wa_phone, -employer, -slack, -slack_email2, 
+         -`Email Address for Slack`, -`Add JV?`, -`JV Name`, -`JV Email`, 
+         -fixed_phone_clean, -fixed_phone_clean_comb,-fixed_phone_clean, -type,
+         -region) 
+   
+
+```
+
+Export
+```{r}
+write.csv(df_new, "output/1y_dir_output.csv")
+```
+
+Export for ongoing db
+```{r}
+df_exp <- df_new %>% rename("phone_countrycode" = "fixed_country_code",
+                            "phone_country" = "fixed_country",
+                            "whatsapp_country" = "wa_country",
+                            "whatsapp_countrycode" = "fixed_wa_country_code") %>% 
+  select(-fixed_wa_phone_clean, -fixed_wa_phone_clean_comb, -valid_phone, -valid_wa)
+
+str(df_exp)
+write.csv(df_exp, "output/1y_dir_output_db.csv")
+writexl::write_xlsx(df_exp, "output/1y_dir_output_db.xlsx")
+```
+
