@@ -1,0 +1,7 @@
+python/image_scraper/images
+r/input
+r/output
+*.Rproj.user
+*.Rhistory
+netids.csv
+*.vcf
