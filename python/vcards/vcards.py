@@ -2,6 +2,7 @@ import vobject
 import base64
 import os
 import pandas as pd
+from datetime import datetime
 
 img_url = "../image_scraper/images/"
 
@@ -38,6 +39,8 @@ except OSError:
     print ("Creation of the directory %s failed" % path)
 else:
     print ("Successfully created the directory %s " % path)
+
+
 
 
 # Iterate over each row
@@ -113,7 +116,7 @@ for index, row in df.iterrows():
     "\n" + "\n" + \
     employer + "\n" + \
     "Function: " + str(row['function']) + "\n" + \
-    "Industry: " + str(row['job']) + "\n" + "\n" + \
+    "Industry: " + str(row['industry']) + "\n" + "\n" + \
     city + "\n" + \
     row['perm_email_corr'] + "\n" + \
     kellogg + "\n" + "\n" + \
@@ -157,6 +160,21 @@ for index, row in df.iterrows():
     vCard.categories.value = ["Kellogg 1Y 2021"]
 
     # Write output
-    filename = "output/" + netID + ".vcf"
+    filename = path + "/" + netID + ".vcf"
     with open(filename, 'w') as writer:
             writer.write(vCard.serialize())
+
+# Write into single VCF file
+path = wd + "/output_"+timestamp
+print(path)
+
+single_path = wd + "/output_"+timestamp + "/single"
+file_list = os.listdir(single_path)
+file_list = sorted(file_list, key=str.lower)
+print(file_list)
+
+
+with open(path+"/1y.vcf", 'w') as outfile:
+    for fname in file_list:
+        with open(single_path +"/"+ fname) as infile:
+            outfile.write(infile.read())
