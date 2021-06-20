@@ -10,6 +10,36 @@ print(os.getcwd())
 # Read data from survey data
 df = pd.read_table("../../r/output/1y_dir_output.csv",sep=",", dtype={'phone_final': str, 'wa_final': str, 'employer_clean': str,})
 
+
+# Get system time
+now = datetime.now()
+timestamp = now.strftime("%y%m%d_%H%M%S")
+
+# define the name of the directory to be created
+wd = os.getcwd()
+print(wd)
+
+path = wd + "/output_"+timestamp
+print(path)
+
+access_rights = 0o755
+
+try:
+    os.mkdir(path, access_rights)
+except OSError:
+    print ("Creation of the directory %s failed" % path)
+else:
+    print ("Successfully created the directory %s " % path)
+
+path = wd + "/output_"+timestamp + "/single"
+try:
+    os.mkdir(path, access_rights)
+except OSError:
+    print ("Creation of the directory %s failed" % path)
+else:
+    print ("Successfully created the directory %s " % path)
+
+
 # Iterate over each row
 for index, row in df.iterrows():
 
