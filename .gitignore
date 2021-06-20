@@ -5,3 +5,6 @@ r/output
 *.Rhistory
 netids.csv
 *.vcf
+.Rproj.user
+*.jpeg
+*.jpg
